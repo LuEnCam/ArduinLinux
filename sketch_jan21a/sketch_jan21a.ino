@@ -1,26 +1,76 @@
-
 #include <math.h>
 
+//LED Pins
 const int R_PIN_D = 3;
 const int G_PIN_D = 5;
 const int B_PIN_D = 6;
+//Put GND in GND
 
+
+//Joystick pins
 const int SW_PIN_D = 7;
 const int X_AXIS_A = A4;
 const int Y_AXIS_A = A5;
+//Put GND in GND 
+//Put 5V in 5V
+
+
+//Rotator pins
+const int CLK = 10; //check rotation
+const int DT = 11; // rotator direction
+//Put GND in GND 
+//Put 5V in 5V
 
 bool SWLastState = false;
 bool isLEDOn = false;
+
+int value;
+int rotation;
+int rotationValue = 0;
+const int maxRotation = 19;
+int maintainedValue = 0; //max to 10 then decrease. Depending on rotation value
+int clockwise = 1;
+
+int getPosRotation(int _DTRead)
+{
+  if (value != rotation)
+  {
+    
+
+    if (_DTRead != value ) //sens aiguille montre.
+      clockwise = 1;
+    else
+      clockwise = -1;
+
+    rotationValue += clockwise;
+
+    rotationValue = rotationValue % maxRotation ;
+
+    if (rotationValue < 10)
+      maintainedValue += 1;
+    else
+      maintainedValue -= 1;   
+
+    Serial.println("rotation ");
+    Serial.println(maintainedValue);
+  }
+  
+}
 
 void setup() {
     pinMode(R_PIN_D, OUTPUT);
     pinMode(G_PIN_D, OUTPUT);
     pinMode(B_PIN_D, OUTPUT);
-    
+
     pinMode(SW_PIN_D, INPUT_PULLUP);
     pinMode(X_AXIS_A, INPUT);
     pinMode(Y_AXIS_A, INPUT);
-    
+
+    pinMode (CLK,INPUT);
+    pinMode (DT,INPUT);
+
+    rotation = digitalRead(CLK); //Init rotation
+
     Serial.begin(9600);
 }
 
@@ -115,6 +165,7 @@ void getRGBValues(joystick joy, int* r, int* g, int* b) {
 
   hsv_to_rgb(hue, saturation, value, r, g, b);
 
+  /*
   Serial.print("r = ");
   Serial.println(*r);
   Serial.print("g = ");
@@ -122,11 +173,18 @@ void getRGBValues(joystick joy, int* r, int* g, int* b) {
   Serial.print("b = ");
   Serial.println(*b);
   Serial.println();
+  */
   // TODO: formule surement fausse, valeurs etranges (24->140, pas plus pas moins)
 }
 
 void loop() {
   
+  value = digitalRead(CLK); //Checks if rotation
+
+  getPosRotation(digitalRead(DT));
+
+  rotation = value;
+
   joystick joy = getJoystick();
   
   if (!joy.isPush)
@@ -141,6 +199,8 @@ void loop() {
   int r, g, b;
   getRGBValues(joy, &r, &g, &b);
   toggleLED(isLEDOn, r, g, b);
+
   
-  delay(100);
+  //delay(100);
+  
 }
