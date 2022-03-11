@@ -14,48 +14,8 @@ const int Y_AXIS_A = A5;
 //Put GND in GND 
 //Put 5V in 5V
 
-
-//Rotator pins
-const int CLK = 10; //check rotation
-const int DT = 11; // rotator direction
-//Put GND in GND 
-//Put 5V in 5V
-
 bool SWLastState = false;
 bool isLEDOn = false;
-
-int value;
-int rotation;
-int rotationValue = 0;
-const int maxRotation = 19;
-int maintainedValue = 0; //max to 10 then decrease. Depending on rotation value
-int clockwise = 1;
-
-int getPosRotation(int _DTRead)
-{
-  if (value != rotation)
-  {
-    
-
-    if (_DTRead != value ) //sens aiguille montre.
-      clockwise = 1;
-    else
-      clockwise = -1;
-
-    rotationValue += clockwise;
-
-    rotationValue = rotationValue % maxRotation ;
-
-    if (rotationValue < 10)
-      maintainedValue += 1;
-    else
-      maintainedValue -= 1;   
-
-    Serial.println("rotation ");
-    Serial.println(maintainedValue);
-  }
-  
-}
 
 void setup() {
     pinMode(R_PIN_D, OUTPUT);
@@ -65,11 +25,6 @@ void setup() {
     pinMode(SW_PIN_D, INPUT_PULLUP);
     pinMode(X_AXIS_A, INPUT);
     pinMode(Y_AXIS_A, INPUT);
-
-    pinMode (CLK,INPUT);
-    pinMode (DT,INPUT);
-
-    rotation = digitalRead(CLK); //Init rotation
 
     Serial.begin(9600);
 }
@@ -104,10 +59,8 @@ void toggleLED(bool joy, int r, int g, int b) {
 }
 
 // https://arduino-and-atmel-projects.webnode.sk/l/hsv-to-rgb-model/
-
 void hsv_to_rgb(uint16_t h, uint32_t s, uint32_t v, int* outR, int* outG, int* outB)
 {
-    
     if (h>=36000) h-=36000;
     int16_t ph = h/6;  
     ph=ph % 2000;
@@ -146,47 +99,68 @@ void getRGBValues(joystick joy, int* r, int* g, int* b) {
 
   int xVector = joy.xAxis - 512;
   int yVector = joy.yAxis - 512;
-  
-  // saturation = norme (P, joy.pos)
-  uint16_t saturation = sqrt(square(xVector) + square(yVector));
+
+  // now center is P(0; 0), min-max is (-512, 511)
+
+  // saturation = norme(P, joy.pos)
+  uint16_t saturation = sqrt(square(xVector) + square(yVector)) * 100;
 
   // Hue is the angle between 0 and 360 between our position and the xAxis)
   // simple math, use pythagore and tan the y on x
   // if x == 0 => either 90° or 270°
   uint16_t hue;
-  if (xVector == 0) {
-    hue = yVector >= 0 ? 90 : 270;
-  } else {
-    hue = atan(yVector/xVector);
-  }
 
+  if (xVector == 0) {
+    hue = yVector >= 0 ? 9000 : 27000;
+  } else {
+    double ratio = yVector/(double)xVector;
+    double alpha = atan(ratio) * 180 / PI * 1000;
+
+    // first and third quarter
+    if (alpha >= 0) {
+      // first quarter
+      if (xVector >= 0) {
+        hue = alpha;
+      }
+      // third quarter
+      else {
+        hue = alpha + 18000;
+      }
+    }
+    // second and fourth quarter
+    else {
+      // second quarter
+      if (yVector >= 0) {
+        hue = alpha + 18000;
+      }
+      // fourth quarter
+      else {
+        hue = alpha + 36000;
+      }
+    }
+  }
+  Serial.println(hue/100);
+  /*
+  Serial.print(xVector);
+  Serial.print(" ");
+  Serial.print(yVector);
+  Serial.print(" ");
+  Serial.println(hue);*/
   // value is given by the MOLETTE
   uint16_t value = 127; // TODO: hardcoded
-
   hsv_to_rgb(hue, saturation, value, r, g, b);
 
-  /*
+/*
   Serial.print("r = ");
-  Serial.println(*r);
-  Serial.print("g = ");
-  Serial.println(*g);
-  Serial.print("b = ");
-  Serial.println(*b);
-  Serial.println();
-  */
-  // TODO: formule surement fausse, valeurs etranges (24->140, pas plus pas moins)
+  Serial.print(*r);
+  Serial.print(" g = ");
+  Serial.print(*g);
+  Serial.print(" b = ");
+  Serial.println(*b);*/
 }
 
 void loop() {
-  
-  value = digitalRead(CLK); //Checks if rotation
-
-  getPosRotation(digitalRead(DT));
-
-  rotation = value;
-
   joystick joy = getJoystick();
-  
   if (!joy.isPush)
     SWLastState = false;
 
@@ -197,10 +171,11 @@ void loop() {
   }
   
   int r, g, b;
-  getRGBValues(joy, &r, &g, &b);
+  if (isLEDOn)
+    getRGBValues(joy, &r, &g, &b);
   toggleLED(isLEDOn, r, g, b);
 
   
-  //delay(100);
+  delay(100);
   
 }
