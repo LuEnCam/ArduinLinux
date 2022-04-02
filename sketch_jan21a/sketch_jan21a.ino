@@ -1,4 +1,5 @@
 #include <math.h>
+#include "crc_table.h"
 
 //LED Pins
 const int R_PIN_D = 3;
@@ -15,7 +16,7 @@ const int Y_AXIS_A = A5;
 //Put 5V in 5V
 
 bool SWLastState = false;
-bool isLEDOn = false;
+bool isLEDOn = true;
 
 void setup() {
     pinMode(R_PIN_D, OUTPUT);
@@ -36,10 +37,15 @@ struct joystick {
 };
 
 struct joystick getJoystick() {
-  return joystick {
-    !digitalRead(SW_PIN_D),
-    analogRead(X_AXIS_A),
-    analogRead(Y_AXIS_A)
+//  return joystick {
+//    !digitalRead(SW_PIN_D),
+//    analogRead(X_AXIS_A),
+//    analogRead(Y_AXIS_A)
+//    };
+    return joystick {
+      !digitalRead(SW_PIN_D),
+      0,
+      0
     };
 }
 
@@ -175,7 +181,10 @@ void loop() {
     getRGBValues(joy, &r, &g, &b);
   toggleLED(isLEDOn, r, g, b);
 
-  
-  delay(100);
+  Serial.print("Joystick value : ");
+  Serial.print(joy.xAxis);
+  Serial.print(" ");
+  Serial.println(joy.yAxis);
+  delay(1000);
   
 }
