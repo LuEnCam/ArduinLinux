@@ -1,5 +1,4 @@
 #include <math.h>
-#include "crc_table.h"
 
 //LED Pins
 const int R_PIN_D = 3;
