@@ -5,16 +5,14 @@
 
 #include "pins_arduino.h"
 
-#define N64_PIN 2
+#define N64_PIN 2 // Data pin on pin 2
+
 #define N64_PIN_DIR DDRD
-// these two macros set arduino pin 2 to input or output, which with an
-// external 1K pull-up resistor to the 3.3V rail, is like pulling it high or
-// low.  These operations translate to 1 op code, which takes 2 cycles
 #define N64_HIGH DDRD &= ~0x04
 #define N64_LOW DDRD |= 0x04
 #define N64_QUERY (PIND & 0x04)
 
-///// Define of N64 controllers buttons 
+///// Define of N64 controllers buttons (parce qu'on ne va pas se faire chier avec des hexas)
 #define N64_START      16
 #define N64_A          128
 #define N64_B          64
@@ -32,6 +30,7 @@
 #define N64_CPAD2_L     0x02
 #define N64_CPAD2_R     0x01
 
+
 // 8 bytes of data that we get from the controller
 struct {
     // bits: 0, 0, 0, start, y, x, b, a
@@ -41,6 +40,8 @@ struct {
     char stick_x;
     char stick_y;
 } N64_status;
+
+
 char N64_raw_dump[33]; // 1 received bit per byte
 
 
@@ -49,22 +50,11 @@ void N64_get();
 void print_N64_status();
 void translate_raw_data();
 
-const int ledPin = 9;
+
 const int brightness = 0;
 const int piezoPin = 13;
 const int tones[] = {261, 277, 294, 311, 330, 349, 370, 392, 415, 440};
 
-void increaseBrightness() {
-  if (brightness <= 245) {
-    //brightness += 10;
-  }
-}
-
-void decreaseBrightness() {
-  if (brightness >= 10) {
-    //brightness -= 10;
-  }
-}
 
 void playTone() {
   // gets us an integer between 0 & 10
@@ -102,6 +92,7 @@ void translate_raw_data()
 }
 
 
+//https://github.com/jongold/N64_Arduino
 /**
  * This sends the given byte sequence to the controller
  * length must be at least 1
@@ -221,6 +212,7 @@ void N64_send(unsigned char *buffer, char length)
 
 }
 
+//https://github.com/jongold/N64_Arduino
 void N64_get()
 {
   // listen for the expected 8 bytes of data back from the controller and
