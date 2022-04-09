@@ -1,7 +1,9 @@
 import sys
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton, QSlider, QLabel, QTextEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QSlider, QLabel, QTextEdit
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QGridLayout
 from screeninfo import get_monitors
+from functools import partial
 
 # get width and height of main monitor
 def get_main_monitor_info():
@@ -55,88 +57,86 @@ class MainWindow(QWidget):
         # create the joystick input text zone
         textJoystick = QTextEdit()
         textJoystick.setReadOnly(True)
-        
+
         # create LED sliders
+        # hue
         initialHueValue = 0
         self.hueWheel = 360
-        labelHue = QLabel('Hue value of the led')
-        self.labelValueHue = QLabel('value: %.2f' % initialHueValue)
+        self.basicSliderHueText = 'HUE: '
+        self.labelValueHue = QLabel(self.basicSliderHueText + '%.2f' % initialHueValue)
         sliderHue = QSlider(Qt.Orientation.Horizontal)
         sliderHue.setMinimum(0)
         sliderHue.setMaximum(self.hueWheel) # correspond to the HUE color circle
         sliderHue.setTickInterval(45)
-        sliderHue.setTickPosition(QSlider.TickPosition.TicksBothSides)
+        sliderHue.setTickPosition(QSlider.TickPosition.TicksAbove)
         sliderHue.valueChanged.connect(self.hueChangeValue)
         sliderHue.setValue(initialHueValue)
-        
+        # intensity
         initialIntensityValue = 0
         self.hueIntensity = 100
-        labelIntensity = QLabel('Hue value of the led')
-        self.labelValueIntensity = QLabel('value: %.2f' % initialIntensityValue)
+        self.basicSliderIntensityText = 'Intensity: '
+        self.labelValueIntensity = QLabel(self.basicSliderIntensityText + '%.2f' % initialIntensityValue)
         sliderIntensity = QSlider(Qt.Orientation.Horizontal)
         sliderIntensity.setMinimum(0)
         sliderIntensity.setMaximum(self.hueIntensity)
         sliderIntensity.setTickInterval(10)
-        sliderIntensity.setTickPosition(QSlider.TickPosition.TicksBothSides)
+        sliderIntensity.setTickPosition(QSlider.TickPosition.TicksLeft)
         sliderIntensity.valueChanged.connect(self.hueChangeIntensity)
         sliderIntensity.setValue(initialIntensityValue)
         
-        # create LED buttons
-        btnTurnOn = QPushButton("ON")
-        btnTurnOn.clicked.connect(self.turnOnLed)
-        
-        btnTurnOff = QPushButton("OFF")
-        btnTurnOff.clicked.connect(self.turnOffLed)
-        
+        # create LED button
+        btnToggleLED = QPushButton()
+        btnToggleLED.setCheckable(True)
+        btnToggleLED.clicked.connect(partial(self.toggleLed, btnToggleLED))
+        self.basicToggleLedText = 'LED is : '
         initialBtnState = kwargs.pop('btnState', False)
-        self.labelBtnState = QLabel(f"LED is : {'ON' if initialBtnState else 'OFF'}")
-        self.turnOnLed() if initialBtnState else self.turnOffLed()
+        self.toggleLed(btnToggleLED, initialBtnState)
         
         # add widgets to layout
-        layout = QGridLayout(parent=self)
-        row = 0
+        layout = QVBoxLayout(self)
         
         # joystick title
-        layout.addWidget(JoystickTitle, row, 0)
-        row += 1
+        layout.addWidget(JoystickTitle)
+        
         # text joystick
-        layout.addWidget(textJoystick, row, 0)
-        row += 1
+        layout.addWidget(textJoystick)
         
         # led title
-        layout.addWidget(LEDTitle, row, 0)
-        row += 1
-        # hue
-        layout.addWidget(labelHue, row, 0)
-        layout.addWidget(self.labelValueHue, row, 1)
-        row += 1
-        layout.addWidget(sliderHue, row, 0)
-        row += 1
-        # intensity
-        layout.addWidget(labelIntensity, row, 0)
-        layout.addWidget(self.labelValueIntensity, row, 1)
-        row += 1
-        layout.addWidget(sliderIntensity, row, 0)
-        row += 1
-        layout.addWidget(self.labelBtnState, row, 0)
-        row += 1
-        layout.addWidget(btnTurnOn, row, 0)
-        layout.addWidget(btnTurnOff, row, 1)
-        row += 1
+        layout.addWidget(LEDTitle)
+        
+        # sliders
+        layoutSliders = QGridLayout()
+        layoutSliders.addWidget(self.labelValueHue, 0, 0)
+        layoutSliders.addWidget(sliderHue, 0, 1)
+        layoutSliders.addWidget(self.labelValueIntensity, 1, 0)
+        layoutSliders.addWidget(sliderIntensity, 1, 1)
+        layout.addLayout(layoutSliders)
+        # # hue
+        # layoutHUE = QHBoxLayout()
+        # layoutHUE.addWidget(self.labelValueHue)
+        # layoutHUE.addWidget(sliderHue)
+        # layout.addLayout(layoutHUE)
+
+        # # intensity
+        # layoutIntensity = QHBoxLayout()
+        # layoutIntensity.addWidget(self.labelValueIntensity)
+        # layoutIntensity.addWidget(sliderIntensity)
+        # layout.addLayout(layoutIntensity)
+
+        # turn on/off button
+        layout.addWidget(btnToggleLED)
     
     def hueChangeValue(self):
         value = self.sender().value() / self.hueWheel
-        self.labelValueHue.setText('value: %.2f' % value)
+        self.labelValueHue.setText(self.basicSliderHueText + '%.2f' % value)
         
     def hueChangeIntensity(self):
         value = self.sender().value() / self.hueIntensity
-        self.labelValueIntensity.setText('value: %.2f' % value)
+        self.labelValueIntensity.setText(self.basicSliderIntensityText + '%.2f' % value)
         
-    def turnOnLed(self):
-        self.labelBtnState.setText(f'LED is : ON')
-    
-    def turnOffLed(self):
-        self.labelBtnState.setText(f'LED is : OFF')
+    def toggleLed(self, sender, checked):
+        mode = 'ON' if checked else 'OFF'
+        sender.setText(self.basicToggleLedText + mode)
 
 def main():
     
