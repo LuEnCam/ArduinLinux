@@ -5,6 +5,15 @@ import sys
 from functools import partial
 from math import sqrt, atan, pi
 
+# def debug(tab):
+#     for dic in tab:
+#         s = ''
+#         for k, v in dic.items():
+#             s += f'{k}:{v} '
+#         print(s)
+#     print('\n')
+
+
 MAX = 1023
 def getHSV(x, y):
     #center is P(511; 511);
@@ -57,9 +66,18 @@ def HSVtoRGB(x, y):
     h,s,v = getHSV(x, y)
     
     c = v * s
-    x = c * (1-abs((h / 60) % 2 - 1))
+    un = h/60
+    deux = un % 2 - 1
+    trois = 1 - abs(deux)
+    x = c * trois
+    # x = c * (1-abs((h / 60) % 2 - 1))
     m = v - c
-    
+    # debug([
+    #     {'h': h, 's': s, 'v': v},
+    #     {'un': un, 'deux': deux, 'trois': trois},
+    #     {'c': c, 'x': x, 'm': m},
+    #     ])
+
     if 0 <= h and h < 60:
         # rgb = [c, x, 0];
         r, g, b = c, x, 0
@@ -195,9 +213,8 @@ class MyWidget(QWidget):
     def bcxNegativeAxis(self, isClicked):
         self.isNegativeAxis = isClicked
 
-app = QApplication(sys.argv)
-
-w = MyWidget()
-w.show()
-
-sys.exit(app.exec())
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    w = MyWidget()
+    w.show()
+    sys.exit(app.exec_())

@@ -1,0 +1,6 @@
+{
+    "sketch": "sketch_jan21a\\sketch_jan21a.ino",
+    "board": "arduino:avr:uno",
+    "programmer": "arduino:avrisp",
+    "port": "COM5"
+}
