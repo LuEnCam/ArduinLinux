@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QSlider, QLabel,
 from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QGridLayout
 from screeninfo import get_monitors
 from functools import partial
+import project_events
 
 # get width and height of main monitor
 def get_main_monitor_info():
@@ -28,6 +29,8 @@ class MainWindow(QWidget):
         optionnal kwargs:
         btnState: boolean # initial state of the LED
         '''
+        project_events.joystickEvent += self.joystickEventThing
+
         super().__init__()
         
         # set title
@@ -55,8 +58,8 @@ class MainWindow(QWidget):
         JoystickTitle = QLabel("Joystick")
         
         # create the joystick input text zone
-        textJoystick = QTextEdit()
-        textJoystick.setReadOnly(True)
+        self.textJoystick = QTextEdit()
+        self.textJoystick.setReadOnly(True)
 
         # create LED sliders
         # hue
@@ -99,7 +102,7 @@ class MainWindow(QWidget):
         layout.addWidget(JoystickTitle)
         
         # text joystick
-        layout.addWidget(textJoystick)
+        layout.addWidget(self.textJoystick)
         
         # led title
         layout.addWidget(LEDTitle)
@@ -137,6 +140,13 @@ class MainWindow(QWidget):
     def toggleLed(self, sender, checked):
         mode = 'ON' if checked else 'OFF'
         sender.setText(self.basicToggleLedText + mode)
+        project_events.ledEvent(checked)
+
+    def joystickEventThing(self, s):
+        oldText = self.textJoystick.toPlainText()
+        if oldText != '':
+            oldText += '\n'
+        self.textJoystick.setText(oldText + s)
 
 def main():
     

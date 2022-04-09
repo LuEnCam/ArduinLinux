@@ -24,7 +24,6 @@ def dev():
     
 def main():
     print("Main")
-    
 
     
 if __name__ == '__main__':
