@@ -145,8 +145,8 @@ class MainWindow(QWidget):
     def joystickEventThing(self, s):
         oldText = self.textJoystick.toPlainText()
         if oldText != '':
-            oldText += '\n'
-        self.textJoystick.setText(oldText + s)
+            s += '\n'
+        self.textJoystick.setText(s + oldText)
 
 def main():
     

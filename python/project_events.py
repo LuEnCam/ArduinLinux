@@ -17,5 +17,10 @@ ledEvent = Event()
 joystickEvent = Event()
 
 # def ledcalled(checked):
-#     print("led called with", checked)
+#     try:
+#         getattr(ledcalled, 'counter')
+#     except:
+#         setattr(ledcalled, 'counter', 0)
+#     joystickEvent(f"led called with {ledcalled.counter}")
+#     ledcalled.counter += 1
 # ledEvent += ledcalled
