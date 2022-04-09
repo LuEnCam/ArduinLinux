@@ -34,7 +34,7 @@ class MainWindow(QWidget):
         super().__init__()
         
         # set title
-        self.setWindowTitle("ARDUINO I COMMAND THEE")
+        self.setWindowTitle('ARDUINO I COMMAND THEE')
         
         # set size of the app
         monitor_width, monitor_height = get_main_monitor_info()
@@ -54,9 +54,12 @@ class MainWindow(QWidget):
     def create_ui(self, **kwargs):
         
         # create the title labels
-        LEDTitle = QLabel("LED")
-        JoystickTitle = QLabel("Joystick")
-        
+        LEDTitle = QLabel('LED')
+        JoystickTitle = QLabel('Joystick')
+        LEDTitle.setStyleSheet('font-weight: bold; font-size: 16px;')
+        JoystickTitle.setStyleSheet('font-weight: bold; font-size: 16px;')
+
+
         # create the joystick input text zone
         self.textJoystick = QTextEdit()
         self.textJoystick.setReadOnly(True)
@@ -67,6 +70,7 @@ class MainWindow(QWidget):
         self.hueWheel = 360
         self.basicSliderHueText = 'HUE: '
         self.labelValueHue = QLabel(self.basicSliderHueText + '%.2f' % initialHueValue)
+        self.labelValueHue.setStyleSheet('font-size: 12px;')
         sliderHue = QSlider(Qt.Orientation.Horizontal)
         sliderHue.setMinimum(0)
         sliderHue.setMaximum(self.hueWheel) # correspond to the HUE color circle
@@ -79,6 +83,7 @@ class MainWindow(QWidget):
         self.hueIntensity = 100
         self.basicSliderIntensityText = 'Intensity: '
         self.labelValueIntensity = QLabel(self.basicSliderIntensityText + '%.2f' % initialIntensityValue)
+        self.labelValueIntensity.setStyleSheet('font-size: 12px;')
         sliderIntensity = QSlider(Qt.Orientation.Horizontal)
         sliderIntensity.setMinimum(0)
         sliderIntensity.setMaximum(self.hueIntensity)
