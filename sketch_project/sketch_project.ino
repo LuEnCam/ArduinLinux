@@ -270,13 +270,12 @@ void globalMode(){
     gl_h = atof(sPtr[1]);
     gl_s = atof(sPtr[2]);
 
+    joystick joy = joystick{0,0,0};
+    int r, g, b;
+    if (isLEDOn)
+      getRGBValues(joy, &r, &g, &b);
+    toggleLED(isLEDOn, r, g, b);
   }
-
-  joystick joy = joystick{0,0,0};
-  int r, g, b;
-  if (isLEDOn)
-    getRGBValues(joy, &r, &g, &b);
-  toggleLED(isLEDOn, r, g, b);
 }
 
 void loop() {

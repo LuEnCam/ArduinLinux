@@ -14,12 +14,11 @@ def dev():
     while True:
         value = ""
         
-        while value != "red" and value != "blue" and value != "off":  
-            value = input("Type command (red,blue,off) : ")
+        while value == "":  
+            value = input("Type Input: ")
         
         ser.write(str.encode(value)) # Convert the decimal number to ASCII then send it to the Arduino
-        print(ser.readline()) # Read the newest output from the Arduino
-        sleep(.1) # Delay for one tenth of a second
+        ##print(ser.readline()) # Read the newest output from the Arduino
     
     
 def main():
