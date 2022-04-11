@@ -3,12 +3,21 @@
 
 #define num_type float
 
+#define SPTR_SIZE   20
+char   *sPtr [SPTR_SIZE];
+String command;
+
+num_type gl_h;
+num_type gl_s;
+const num_type gl_v = 1.0;
+
 //LED Pins
 const int R_PIN_D = 3;
 const int G_PIN_D = 5;
 const int B_PIN_D = 6;
 //Put GND in GND
 
+const int global_mode = 2; // 1 = joystick | 2 = python
 
 //Joystick pins
 const int SW_PIN_D = 7;
@@ -44,6 +53,25 @@ struct joystick getJoystick() {
     analogRead(X_AXIS_A),
     analogRead(Y_AXIS_A)
     };
+}
+
+// Used to split the command received in parameter
+int separate (
+    String str,
+    char   **p,
+    int    size )
+{
+    int  n;
+    char s [100];
+
+    strcpy (s, str.c_str ());
+
+    *p++ = strtok (s, " ");
+    for (n = 1; NULL != (*p++ = strtok (NULL, " ")); n++)
+        if (size == n)
+            break;
+
+    return n;
 }
 
 void toggleLED(bool joy, int r, int g, int b) {
@@ -156,7 +184,13 @@ void getRGBValues(joystick joy, int* r, int* g, int* b) {
   // xAxis and yAxis between 0 and 1023
   // r, g, b between 0 and 255
   num_type h, s, v;
-  getHSV(joy.xAxis, joy.yAxis, &h, &s, &v);
+  if (global_mode == 1)
+    getHSV(joy.xAxis, joy.yAxis, &h, &s, &v);
+  else{
+    h = gl_h;
+    s = gl_s;
+    v = gl_v;
+  }
 
   num_type c = v * s;
   num_type un = h / 60;
@@ -224,7 +258,33 @@ void getRGBValues(joystick joy, int* r, int* g, int* b) {
   // Serial.println();
 }
 
+void globalMode(){
+  if (Serial.available()) {
+      ///Getting the inputs
+    command = Serial.readStringUntil('\n');
+    command.trim();
+    //The command is received in the following form:
+      //1 32.0 1.0
+    int N = separate(command, sPtr, SPTR_SIZE);
+    isLEDOn = atoi(sPtr[0]);      
+    gl_h = atof(sPtr[1]);
+    gl_s = atof(sPtr[2]);
+
+  }
+
+  joystick joy = joystick{0,0,0};
+  int r, g, b;
+  if (isLEDOn)
+    getRGBValues(joy, &r, &g, &b);
+  toggleLED(isLEDOn, r, g, b);
+}
+
 void loop() {
+  if (global_mode == 2){
+    globalMode();
+    delay(10);
+  }
+  else {
   joystick joy = getJoystick();
   if (!joy.isPush)
     SWLastState = false;
@@ -235,7 +295,7 @@ void loop() {
     isLEDOn = !isLEDOn;
     Serial.print("pressed");
   }
-  
+    
   int r, g, b;
   if (isLEDOn)
     getRGBValues(joy, &r, &g, &b);
@@ -246,5 +306,5 @@ void loop() {
   // Serial.print(" ");
   // Serial.println(joy.yAxis);
   delay(10);
-  
+  } 
 }
