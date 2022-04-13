@@ -4,6 +4,14 @@ import serial
 import sys
 
 
+def send_input(ser, _input: str):
+        ser.write(str.encode(_input)) # Convert the decimal number to ASCII then send it to the Arduino
+        ##print(ser.readline()) # Read the newest output from the Arduino
+        print(_input)
+        sleep(0.2)
+        
+
+
 def dev():
     print(sys.platform)
     if sys.platform == 'win32':
