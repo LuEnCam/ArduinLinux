@@ -1,20 +1,16 @@
 import sys
+from typing import IO
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QSlider, QLabel, QTextEdit
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QSlider, QLabel, QTextEdit, QTextEdit, QLineEdit, QMessageBox
 from PyQt6.QtWidgets import QVBoxLayout, QGridLayout
 from screeninfo import get_monitors
 from functools import partial
 import project_events
 import script_for_arduino_linux as script
 import serial
+from serial.tools import list_ports
 from time import sleep
 
-## This will be the global variable that will be used to store the serial port
-ser = 0
-
-hue = 0
-sat = 0
-on_off = 0
 
 
 # get width and height of main monitor
@@ -59,6 +55,13 @@ class MainWindow(QWidget):
         
         del monitor_width, monitor_height, c_with, c_height
         
+        self.list_of_ports = []
+         
+        for comport in serial.tools.list_ports.comports():
+            self.list_of_ports.append(comport.device)
+                
+        self.serial = None
+        
         self.create_ui(**kwargs)
         
         
@@ -69,11 +72,22 @@ class MainWindow(QWidget):
         JoystickTitle = QLabel('Joystick')
         LEDTitle.setStyleSheet('font-weight: bold; font-size: 16px;')
         JoystickTitle.setStyleSheet('font-weight: bold; font-size: 16px;')
-
-
+        
+        self.hue = 0
+        self.sat = 0
+        self.on_off = 0
+            
         # create the joystick input text zone
         self.textJoystick = QTextEdit()
         self.textJoystick.setReadOnly(True)
+        
+        # create the inputbox for the arduino port
+        portTitle = QLabel('Arduino port')
+        self.connectPushButton = QPushButton('Connect')
+        self.arduinoPort = QLineEdit()
+        self.arduinoPort.setPlaceholderText(f"Example on Linux: \"ttyACM0\". Example on Windows: \"COM10\". Port founds : {[i for i in self.list_of_ports]}")
+        self.connectPushButton.pressed.connect(self.portDefine)
+        
 
         # create LED sliders
         # hue
@@ -129,6 +143,10 @@ class MainWindow(QWidget):
         layoutSliders.addWidget(sliderHue, 0, 1)
         layoutSliders.addWidget(self.labelValueIntensity, 1, 0)
         layoutSliders.addWidget(sliderIntensity, 1, 1)
+        layoutSliders.addWidget(portTitle, 2, 0)
+        layoutSliders.addWidget(self.arduinoPort, 2, 1)
+        layoutSliders.addWidget(self.connectPushButton, 2, 2)
+        
         layout.addLayout(layoutSliders)
         # # hue
         # layoutHUE = QHBoxLayout()
@@ -148,36 +166,37 @@ class MainWindow(QWidget):
     def hueChangeValue(self):
         value = self.sender().value() ## / self.hueWheel
         self.labelValueHue.setText(self.basicSliderHueText + '%.2f' % value)
-        global ser
-        global hue
-        global sat
-        global on_off
-        hue = value
-        script.send_input(ser, f"{on_off} {hue} {sat}")
+        self.hue = value
+        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat}")
 
         
         
     def hueChangeIntensity(self):
         value = self.sender().value() / self.hueIntensity
         self.labelValueIntensity.setText(self.basicSliderIntensityText + '%.2f' % value)
-        global ser
-        global hue
-        global sat
-        global on_off
-        sat = value
-        script.send_input(ser, f"{on_off} {hue} {sat}")
+        self.sat = value
+        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat}")
+        
+    def portDefine(self):
+        value = self.arduinoPort.text()
+        try:
+            if sys.platform == 'win32':
+                self.serial = serial.Serial(f'{value}', 9600) # Establish the connection on a specific port
+            elif sys.platform == 'linux':
+                self.serial = serial.Serial(f'/dev/{value}', 9600) # Establish the connection on a specific port
+            self.arduinoPort.clear()
+            self.connectPushButton.setDisabled(True)
+            QMessageBox.information(self, 'Connection', f'Connection established to port {value}')
+        except:
+            QMessageBox.warning(self, 'Error', f'Port n° "{value}" not found')
 
         
     def toggleLed(self, sender, checked):
         mode = 'ON' if checked else 'OFF'
         sender.setText(self.basicToggleLedText + mode)
         project_events.ledEvent(checked)
-        global ser
-        global hue
-        global sat
-        global on_off
-        on_off = 1 if checked else 0
-        script.send_input(ser, f"{on_off} {hue} {sat}")
+        self.on_off = 1 if checked else 0
+        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat}")
 
 
     def joystickEventThing(self, s):
@@ -189,12 +208,6 @@ class MainWindow(QWidget):
 def main():
     
     app = QApplication(sys.argv)
-
-    global ser
-    if sys.platform == 'win32':
-        ser = serial.Serial('COM10', 9600) # Establish the connection on a specific port
-    elif sys.platform == 'linux':
-        ser = serial.Serial('/dev/ttyACM1', 9600) # Establish the connection on a specific port
     
     mainWindow = MainWindow()
     mainWindow.show()
