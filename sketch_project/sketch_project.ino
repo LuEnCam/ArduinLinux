@@ -17,7 +17,7 @@ const int G_PIN_D = 5;
 const int B_PIN_D = 6;
 //Put GND in GND
 
-int global_mode = 2; // 1 = joystick | 2 = python
+int global_mode = 1; // 1 = joystick | 2 = python
 
 //Joystick pins
 const int SW_PIN_D = 7;
@@ -270,6 +270,11 @@ void globalMode(){
     gl_h = atof(sPtr[1]);
     gl_s = atof(sPtr[2]);
     global_mode = atof(sPtr[3]);
+    Serial.println("Values :");
+    Serial.println(isLEDOn);
+    Serial.println(gl_h);
+    Serial.println(gl_s);
+    Serial.println(global_mode);
 
     joystick joy = joystick{0,0,0};
     int r, g, b;

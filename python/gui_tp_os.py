@@ -64,6 +64,9 @@ class MainWindow(QWidget):
         
         self.create_ui(**kwargs)
         
+        self.switch_button.setDisabled(True)
+        self.is_GUI_mode()
+        
         
     def create_ui(self, **kwargs):
         
@@ -76,6 +79,7 @@ class MainWindow(QWidget):
         self.hue = 0
         self.sat = 0
         self.on_off = 0
+        self.mode_GUI = False ## for UI mode, else False for joystick mode
             
         # create the joystick input text zone
         self.textJoystick = QTextEdit()
@@ -96,34 +100,38 @@ class MainWindow(QWidget):
         self.basicSliderHueText = 'HUE: '
         self.labelValueHue = QLabel(self.basicSliderHueText + '%.2f' % initialHueValue)
         self.labelValueHue.setStyleSheet('font-size: 12px;')
-        sliderHue = QSlider(Qt.Orientation.Horizontal)
-        sliderHue.setMinimum(0)
-        sliderHue.setMaximum(self.hueWheel) # correspond to the HUE color circle
-        sliderHue.setTickInterval(45)
-        sliderHue.setTickPosition(QSlider.TickPosition.TicksAbove)
-        sliderHue.valueChanged.connect(self.hueChangeValue)
-        sliderHue.setValue(initialHueValue)
+        self.sliderHue = QSlider(Qt.Orientation.Horizontal)
+        self.sliderHue.setMinimum(0)
+        self.sliderHue.setMaximum(self.hueWheel) # correspond to the HUE color circle
+        self.sliderHue.setTickInterval(45)
+        self.sliderHue.setTickPosition(QSlider.TickPosition.TicksAbove)
+        self.sliderHue.valueChanged.connect(self.hueChangeValue)
+        self.sliderHue.setValue(initialHueValue)
         # intensity
         initialIntensityValue = 0
         self.hueIntensity = 100
         self.basicSliderIntensityText = 'Intensity: '
         self.labelValueIntensity = QLabel(self.basicSliderIntensityText + '%.2f' % initialIntensityValue)
         self.labelValueIntensity.setStyleSheet('font-size: 12px;')
-        sliderIntensity = QSlider(Qt.Orientation.Horizontal)
-        sliderIntensity.setMinimum(0)
-        sliderIntensity.setMaximum(self.hueIntensity)
-        sliderIntensity.setTickInterval(10)
-        sliderIntensity.setTickPosition(QSlider.TickPosition.TicksLeft)
-        sliderIntensity.valueChanged.connect(self.hueChangeIntensity)
-        sliderIntensity.setValue(initialIntensityValue)
+        self.sliderIntensity = QSlider(Qt.Orientation.Horizontal)
+        self.sliderIntensity.setMinimum(0)
+        self.sliderIntensity.setMaximum(self.hueIntensity)
+        self.sliderIntensity.setTickInterval(10)
+        self.sliderIntensity.setTickPosition(QSlider.TickPosition.TicksLeft)
+        self.sliderIntensity.valueChanged.connect(self.hueChangeIntensity)
+        self.sliderIntensity.setValue(initialIntensityValue)
         
         # create LED button
-        btnToggleLED = QPushButton()
-        btnToggleLED.setCheckable(True)
-        btnToggleLED.clicked.connect(partial(self.toggleLed, btnToggleLED))
+        self.btnToggleLED = QPushButton()
+        self.btnToggleLED.setCheckable(True)
+        self.btnToggleLED.clicked.connect(partial(self.toggleLed, self.btnToggleLED))
         self.basicToggleLedText = 'LED is : '
         initialBtnState = kwargs.pop('btnState', False)
-        self.toggleLed(btnToggleLED, initialBtnState)
+        self.toggleLed(self.btnToggleLED, initialBtnState)
+        
+        # create switch mode button
+        self.switch_button = QPushButton("Mode : Joystick")
+        self.switch_button.clicked.connect(self.switch_mode)
         
         # add widgets to layout
         layout = QVBoxLayout(self)
@@ -140,34 +148,27 @@ class MainWindow(QWidget):
         # sliders
         layoutSliders = QGridLayout()
         layoutSliders.addWidget(self.labelValueHue, 0, 0)
-        layoutSliders.addWidget(sliderHue, 0, 1)
+        layoutSliders.addWidget(self.sliderHue, 0, 1)
         layoutSliders.addWidget(self.labelValueIntensity, 1, 0)
-        layoutSliders.addWidget(sliderIntensity, 1, 1)
+        layoutSliders.addWidget(self.sliderIntensity, 1, 1)
         layoutSliders.addWidget(portTitle, 2, 0)
         layoutSliders.addWidget(self.arduinoPort, 2, 1)
         layoutSliders.addWidget(self.connectPushButton, 2, 2)
         
         layout.addLayout(layoutSliders)
-        # # hue
-        # layoutHUE = QHBoxLayout()
-        # layoutHUE.addWidget(self.labelValueHue)
-        # layoutHUE.addWidget(sliderHue)
-        # layout.addLayout(layoutHUE)
-
-        # # intensity
-        # layoutIntensity = QHBoxLayout()
-        # layoutIntensity.addWidget(self.labelValueIntensity)
-        # layoutIntensity.addWidget(sliderIntensity)
-        # layout.addLayout(layoutIntensity)
 
         # turn on/off button
-        layout.addWidget(btnToggleLED)
+        layout.addWidget(self.btnToggleLED)
+        
+        # switch mode button
+        layout.addWidget(self.switch_button)
     
     def hueChangeValue(self):
         value = self.sender().value() ## / self.hueWheel
         self.labelValueHue.setText(self.basicSliderHueText + '%.2f' % value)
         self.hue = value
-        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat}")
+        mode = get_mode_value(self.mode_GUI)
+        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat} {mode}")
 
         
         
@@ -175,7 +176,8 @@ class MainWindow(QWidget):
         value = self.sender().value() / self.hueIntensity
         self.labelValueIntensity.setText(self.basicSliderIntensityText + '%.2f' % value)
         self.sat = value
-        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat}")
+        mode = get_mode_value(self.mode_GUI)
+        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat} {mode}")
         
     def portDefine(self):
         value = self.arduinoPort.text()
@@ -186,6 +188,7 @@ class MainWindow(QWidget):
                 self.serial = serial.Serial(f'/dev/{value}', 9600) # Establish the connection on a specific port
             self.arduinoPort.clear()
             self.connectPushButton.setDisabled(True)
+            self.switch_button.setEnabled(True)
             QMessageBox.information(self, 'Connection', f'Connection established to port {value}')
         except:
             QMessageBox.warning(self, 'Error', f'Port n° "{value}" not found')
@@ -196,7 +199,8 @@ class MainWindow(QWidget):
         sender.setText(self.basicToggleLedText + mode)
         project_events.ledEvent(checked)
         self.on_off = 1 if checked else 0
-        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat}")
+        mode = get_mode_value(self.mode_GUI)
+        script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat} {mode}")
 
 
     def joystickEventThing(self, s):
@@ -204,6 +208,25 @@ class MainWindow(QWidget):
         if oldText != '':
             s += '\n'
         self.textJoystick.setText(s + oldText)
+        
+    def switch_mode(self):
+        self.mode_GUI = not self.mode_GUI
+        mode = get_mode_value(self.mode_GUI)
+        text = "UI" if self.mode_GUI == True else "Joystick"
+        self.switch_button.setText(f'Mode : {text}')
+        self.is_GUI_mode()
+        script.send_input(self.serial, f"{mode}")
+        
+    def is_GUI_mode(self):
+        self.btnToggleLED.setEnabled(self.mode_GUI)
+        self.sliderIntensity.setEnabled(self.mode_GUI)
+        self.sliderHue.setEnabled(self.mode_GUI)
+        
+        
+def get_mode_value(val):
+    mode = 2 if val == True else 1
+    return mode    
+        
 
 def main():
     

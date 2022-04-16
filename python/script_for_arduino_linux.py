@@ -18,7 +18,7 @@ def dev():
     if sys.platform == 'win32':
         ser = serial.Serial('COM10', 9600) # Establish the connection on a specific port
     elif sys.platform == 'linux':
-        ser = serial.Serial('/dev/ttyACM1', 19200) # Establish the connection on a specific port
+        ser = serial.Serial('/dev/ttyACM1', 9600) # Establish the connection on a specific port
 
     while True:
         value = ""
