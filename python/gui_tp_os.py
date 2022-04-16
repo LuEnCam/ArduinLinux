@@ -1,8 +1,7 @@
 import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QSlider, QLabel, QTextEdit
-from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QGridLayout
-from pyparsing import one_of
+from PyQt6.QtWidgets import QVBoxLayout, QGridLayout
 from screeninfo import get_monitors
 from functools import partial
 import project_events
