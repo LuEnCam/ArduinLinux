@@ -1,6 +1,16 @@
 #include "crc_table.h"
 #include "testn64.h"
 
+#define num_type float
+
+#define SPTR_SIZE   20
+char   *sPtr [SPTR_SIZE];
+String command;
+
+num_type gl_h;
+num_type gl_s;
+const num_type gl_v = 1.0;
+
 //LED Pins
 const int R_PIN_D = 3;
 const int G_PIN_D = 5;
@@ -13,6 +23,8 @@ bool isLEDOn = false;
 uint16_t g_value = 255;  
 int g_hue = 0;
 float g_saturation = 1.0;
+
+int global_mode = 2; // 1 = joystick | 2 = python
 
 void setup()
 {
@@ -170,15 +182,22 @@ void getRGBValues(unsigned char _data1, unsigned char _data2, char _stick_x, cha
   } 
   else 
   {
-    double ratio = yVector/(double)xVector;
-    // double alpha = atan(ratio) * 180 / PI * 1000;
-    double alpha = atan(ratio);
-    //Serial.println(alpha);
-    
-    n64_get_angle(xVector,yVector);
-    hue = g_hue;
-    Serial.println(hue);
-    Serial.println(g_saturation);
+    if (global_mode == 1){
+      double ratio = yVector/(double)xVector;
+      // double alpha = atan(ratio) * 180 / PI * 1000;
+      double alpha = atan(ratio);
+      //Serial.println(alpha);
+      
+      n64_get_angle(xVector,yVector);
+      hue = g_hue;
+    }
+    else
+    {
+      hue = gl_h;
+      g_saturation = gl_s;
+      g_value = gl_v;
+    }
+
     /*
     // first and third quarter
     if (alpha >= 0) 
@@ -217,9 +236,10 @@ void getRGBValues(unsigned char _data1, unsigned char _data2, char _stick_x, cha
   // uint16_t value = 255; // TODO: hardcoded
   // hsv_to_rgb(hue, saturation, value, r, g, b);
 //  HSV_to_RGB_2(hue, g_saturation, g_value);
+  Serial.println(hue);
+  Serial.println(g_saturation);
+  Serial.println(g_value);
   setLedColorHSV(hue,g_saturation,g_value);
-
-
 }
 
 //Convert a given HSV (Hue Saturation Value) to RGB(Red Green Blue) and set the led to the color
@@ -288,68 +308,130 @@ void setLedColor(int red, int green, int blue) {
   toggleLED(isLEDOn, red, green, blue);
 }
 
+// Used to split the command received in parameter
+int separate (
+    String str,
+    char   **p,
+    int    size )
+{
+    int  n;
+    char s [100];
+
+    strcpy (s, str.c_str ());
+
+    *p++ = strtok (s, " ");
+    for (n = 1; NULL != (*p++ = strtok (NULL, " ")); n++)
+        if (size == n)
+            break;
+
+    return n;
+}
+
+void globalMode(){
+  if (Serial.available()) {
+      ///Getting the inputs
+    command = Serial.readStringUntil('\n');
+    command.trim();
+    //The command is received in the following form:
+      //1 32.0 1.0 2
+    int N = separate(command, sPtr, SPTR_SIZE);
+    isLEDOn = atoi(sPtr[0]);      
+    gl_h = atof(sPtr[1]);
+    gl_s = atof(sPtr[2]);
+    global_mode = atof(sPtr[3]);
+    
+    
+    N64_status.data1 = '0';
+    N64_status.data2 = '0';
+    N64_status.stick_x = '0';
+    N64_status.stick_y = '0';
+    
+    int r, g, b;
+    if (isLEDOn)
+    {
+      getRGBValues(N64_status.data1,N64_status.data2,N64_status.stick_x,N64_status.stick_y, &r, &g, &b);
+
+    }
+    //toggleLED(isLEDOn, r, g, b);
+  }
+}
+
+void check_mode(){
+    if (Serial.available()) {
+      ///Getting the inputs
+      command = Serial.readStringUntil('\n');
+      command.trim();
+      //The command is received in the following form:
+        //1 or 2
+      int N = separate(command, sPtr, SPTR_SIZE);
+      global_mode = atof(sPtr[0]);
+  }     
+}
+
 void loop()
 {
-  int i;
-  unsigned char data, addr;
-
-  // Command to send to the gamecube
-  // The last bit is rumble, flip it to rumble
-  // yes this does need to be inside the loop, the
-  // array gets mutilated when it goes through N64_send
-  unsigned char command[] = {0x01};
-
-  // don't want interrupts getting in the way
-  noInterrupts();
-  // send those 3 bytes
-  N64_send(command, 1);
-  // read in data and dump it to N64_raw_dump
-  N64_get();
-  // end of time sensitive code
-  interrupts();
-
-  // translate the data in N64_raw_dump to something useful
-  translate_raw_data();
-
-   //for (i=0; i<16; i++) {
-   //  Serial.print(N64_raw_dump[i], DEC);
-   //}
-  //Serial.print(' ');
-  //Serial.print(N64_status.stick_x, DEC);
-  //Serial.print(' ');
-  //Serial.print(N64_status.stick_y, DEC);
-  //Serial.print(" \n");
-
-
-  if (!(N64_status.data1 & N64_START))
-    SWLastState = false;
-
-  // the button just got clicked (simulate a switch)
-  else if ((N64_status.data1 & N64_START) != SWLastState) {
-    SWLastState = true;
-    isLEDOn = !isLEDOn;
+  if (global_mode == 2){
+    globalMode();
+    delay(10);
   }
+  else{
+    
+    int i;
+    unsigned char data, addr;
+  
+    // Command to send to the gamecube
+    // The last bit is rumble, flip it to rumble
+    // yes this does need to be inside the loop, the
+    // array gets mutilated when it goes through N64_send
+    unsigned char command[] = {0x01};
+  
+    // don't want interrupts getting in the way
+    noInterrupts();
+    // send those 3 bytes
+    N64_send(command, 1);
+    // read in data and dump it to N64_raw_dump
+    N64_get();
+    // end of time sensitive code
+    interrupts();
+  
+    // translate the data in N64_raw_dump to something useful
+    translate_raw_data();
+  
+     //for (i=0; i<16; i++) {
+     //  Serial.print(N64_raw_dump[i], DEC);
+     //}
+    //Serial.print(' ');
+    //Serial.print(N64_status.stick_x, DEC);
+    //Serial.print(' ');
+    //Serial.print(N64_status.stick_y, DEC);
+    //Serial.print(" \n");
+ 
+    if (!(N64_status.data1 & N64_START))
+      SWLastState = false;
+  
+    // the button just got clicked (simulate a switch)
+    else if ((N64_status.data1 & N64_START) != SWLastState) {
+      SWLastState = true;
+      isLEDOn = !isLEDOn;
+    }
+  
+    if (N64_status.data1 & N64_DPAD_U)
+      update_g_value(20);
+    else if (N64_status.data1 & N64_DPAD_D) 
+      update_g_value(-20);
+  
+    if (N64_status.data1 & N64_DPAD_L)
+      update_g_saturation(0.1);
+    else if (N64_status.data1 & N64_DPAD_R) 
+      update_g_saturation(-0.1);
+  
+  
+    int r, g, b;
+    if (isLEDOn)
+      getRGBValues(N64_status.data1,N64_status.data2,N64_status.stick_x,N64_status.stick_y, &r, &g, &b);
 
-  if (N64_status.data1 & N64_DPAD_U)
-    update_g_value(20);
-  else if (N64_status.data1 & N64_DPAD_D) 
-    update_g_value(-20);
-
-  if (N64_status.data1 & N64_DPAD_L)
-    update_g_saturation(0.1);
-  else if (N64_status.data1 & N64_DPAD_R) 
-    update_g_saturation(-0.1);
-
-
-  int r, g, b;
-  if (isLEDOn)
-    getRGBValues(N64_status.data1,N64_status.data2,N64_status.stick_x,N64_status.stick_y, &r, &g, &b);
-  //toggleLED(isLEDOn, r, g, b);
-  //toggleLED(isLEDOn, 255, 0, 0);
-
-
-  // DEBUG: print it
-  //print_N64_status();
-
-  delay(100);
+    check_mode();
+  
+    delay(100);
+  }
 }

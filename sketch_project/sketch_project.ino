@@ -17,7 +17,7 @@ const int G_PIN_D = 5;
 const int B_PIN_D = 6;
 //Put GND in GND
 
-const int global_mode = 2; // 1 = joystick | 2 = python
+int global_mode = 2; // 1 = joystick | 2 = python
 
 //Joystick pins
 const int SW_PIN_D = 7;
@@ -264,11 +264,12 @@ void globalMode(){
     command = Serial.readStringUntil('\n');
     command.trim();
     //The command is received in the following form:
-      //1 32.0 1.0
+      //1 32.0 1.0 mode
     int N = separate(command, sPtr, SPTR_SIZE);
     isLEDOn = atoi(sPtr[0]);      
     gl_h = atof(sPtr[1]);
     gl_s = atof(sPtr[2]);
+    global_mode = atof(sPtr[3]);
 
     joystick joy = joystick{0,0,0};
     int r, g, b;
@@ -278,32 +279,47 @@ void globalMode(){
   }
 }
 
+void check_mode(){
+    if (Serial.available()) {
+      ///Getting the inputs
+      command = Serial.readStringUntil('\n');
+      command.trim();
+      //The command is received in the following form:
+      //1 or 2
+      int N = separate(command, sPtr, SPTR_SIZE);
+      global_mode = atof(sPtr[0]);
+  }     
+}
+
 void loop() {
   if (global_mode == 2){
     globalMode();
     delay(10);
   }
   else {
-  joystick joy = getJoystick();
-  if (!joy.isPush)
-    SWLastState = false;
+    joystick joy = getJoystick();
+    if (!joy.isPush)
+      SWLastState = false;
+  
+    // the button just got clicked (simulate a switch)
+    else if (joy.isPush != SWLastState) {
+      SWLastState = true;
+      isLEDOn = !isLEDOn;
+      Serial.print("pressed");
+    }
+      
+    int r, g, b;
+    if (isLEDOn)
+      getRGBValues(joy, &r, &g, &b);
+    toggleLED(isLEDOn, r, g, b);
+  
+    // Serial.print("Joystick value : ");
+    // Serial.print(joy.xAxis);
+    // Serial.print(" ");
+    // Serial.println(joy.yAxis);
 
-  // the button just got clicked (simulate a switch)
-  else if (joy.isPush != SWLastState) {
-    SWLastState = true;
-    isLEDOn = !isLEDOn;
-    Serial.print("pressed");
-  }
+    check_mode();
     
-  int r, g, b;
-  if (isLEDOn)
-    getRGBValues(joy, &r, &g, &b);
-  toggleLED(isLEDOn, r, g, b);
-
-  // Serial.print("Joystick value : ");
-  // Serial.print(joy.xAxis);
-  // Serial.print(" ");
-  // Serial.println(joy.yAxis);
-  delay(10);
+    delay(10);
   } 
 }
