@@ -30,10 +30,16 @@ connecter le joystick sur les pins:
 
 ## Important
 
+### python
+
 be sure to have python 3 installed with the path specified in your PATH environnement var
 
 be sure to have pip installed with the path specified in your PATH environnement var
 
 works on python 3.9.1 and above for sure
 
-didn't tried of earlier version
+didn't try of earlier versions
+
+### linux
+
+the installer.sh and smardlino.sh might not work, read the installation_guide_alt.md file in that case.
