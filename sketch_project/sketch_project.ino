@@ -27,7 +27,7 @@ const int Y_AXIS_A = A5;
 //Put 5V in 5V
 
 bool SWLastState = false;
-bool isLEDOn = true;
+bool isLEDOn = false;
 
 void setup() {
     pinMode(R_PIN_D, OUTPUT);

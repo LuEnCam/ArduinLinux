@@ -87,7 +87,11 @@ class MainWindow(QWidget):
         portTitle = QLabel('Arduino port')
         self.connectPushButton = QPushButton('Connect')
         self.arduinoPort = QLineEdit()
-        self.arduinoPort.setPlaceholderText(f"Example on Linux: \"ttyACM0\". Example on Windows: \"COM10\". Port founds : {[i for i in self.list_of_ports]}")
+        if sys.platform == 'win32':
+            self.arduinoPort.setPlaceholderText(f"Example: \"COM10\". Port founds : {[i for i in self.list_of_ports]}")
+        elif sys.platform == 'linux':
+            self.arduinoPort.setPlaceholderText(f"Example: \"ttyACM0\".Port founds : {[i for i in self.list_of_ports]}")
+
         self.connectPushButton.pressed.connect(self.portDefine)
         
         # create LED sliders
