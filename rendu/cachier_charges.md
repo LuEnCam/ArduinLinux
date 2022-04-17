@@ -42,6 +42,7 @@ Jarod:
 - conversion depuis un angle en valeur rgb (hsv to rgb)
 
 Luca:
+
 - analyse des valeurs en input côté script arduino
 
 ### WP 2

@@ -67,7 +67,7 @@ Il existe aussi PySide2, qui est une version open source de PyQt, mais il a ét�
 
 ## 4. Desktop - Connection Serial
 
-Depuis le script python, des énénements sont déclenchés afin de communiquer avec l'arduino (appui d'un bouton, changement des valeurs des barres glissantes pour controller la saturation et la couleur, allumer ou éteindre la LED).
+Depuis le script python, des événements sont déclenchés afin de communiquer avec l'arduino (appui d'un bouton, changement des valeurs des barres glissantes pour contrôler la saturation et la couleur, allumer ou éteindre la LED).
 Tous les événements sont connectés à la même fonction :
 ```python
 	def send_input(ser: serial, _input: str): 
@@ -86,7 +86,7 @@ Exemple:
 _input = "1 120 1.0 2" ## ceci envoie l'information que la led est allumée, sur l'angle de couleur 120, avec une intensité de 1.0 et en mode UI
 ```
 
-Avant de pouvoir controller l'arduino avec le GUI, il est nécessaire de faire l'interfaçage entre le script python et l'arduino. Dans le GUI, un champ est mis à disposition pour spécifier le port sur lequel est connecté l'arduino (que ce soit sur windows ou Linux). La librairie python **serial.tools** permet d'identifier les ports disponibles où se trouvent les périphériques branchés à la machine:
+Avant de pouvoir contrôler l'arduino avec le GUI, il est nécessaire de faire l'interfaçage entre le script python et l'arduino. Dans le GUI, un champ est mis à disposition pour spécifier le port sur lequel est connecté l'arduino (que ce soit sur windows ou Linux). La librairie python **serial.tools** permet d'identifier les ports disponibles où se trouvent les périphériques branchés à la machine:
 
 ![](../images/Capture5.png)
 
@@ -102,5 +102,7 @@ Lorsque le mode joystick est activé, seul le changement de mode côté GUI est 
 
 ## 5. Lecture des valeurs du joysitck
 
-TODO Jarod
+Afin de lire les valeurs du joystick:
 
+- côté arduino on utilise la fonction Serial.print afin d'écrire sur le bus USB.
+- côté python on utilise serial.readline() afin de lire les valeurs sur le bus USB (serial du module _pyserial_).
