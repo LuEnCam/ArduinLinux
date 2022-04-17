@@ -4,8 +4,9 @@
 
 Ce projet a pour but d'interfacer un arduino à un ordinateur
 
-Comme input sur l'arduino, une led rgb est employée
-Comme output depuis l'arduino, un joystick est employé
+Comme input depuis l'arduino, un joystick est employé
+Comme output sur l'arduino, une led rgb est employée
+
 
 L'idée est depuis le PC de pouvoir changer la couleur de la LED, ainsi que de pouvoir lire les valeurs du joystick.
 
@@ -40,6 +41,9 @@ Jarod:
 
 - conversion depuis un angle en valeur rgb (hsv to rgb)
 
+Luca:
+- analyse des valeurs en input côté script arduino
+
 ### WP 2
 
 Jarod:
@@ -58,4 +62,4 @@ Jarod & Luca:
 
 Luca:
 
-- ajout d'un interfacage manette N64 -> arduino
+- ajout d'un interfacage manette N64 -> arduino (pas implémenté dans la partie finale du projet).
