@@ -270,11 +270,6 @@ void globalMode(){
     gl_h = atof(sPtr[1]);
     gl_s = atof(sPtr[2]);
     global_mode = atof(sPtr[3]);
-    Serial.println("Values :");
-    Serial.println(isLEDOn);
-    Serial.println(gl_h);
-    Serial.println(gl_s);
-    Serial.println(global_mode);
 
     joystick joy = joystick{0,0,0};
     int r, g, b;
@@ -290,9 +285,12 @@ void check_mode(){
       command = Serial.readStringUntil('\n');
       command.trim();
       //The command is received in the following form:
-      //1 or 2
+      //1 32.0 1.0 mode
       int N = separate(command, sPtr, SPTR_SIZE);
-      global_mode = atof(sPtr[0]);
+      isLEDOn = atoi(sPtr[0]);      
+      gl_h = atof(sPtr[1]);
+      gl_s = atof(sPtr[2]);
+      global_mode = atof(sPtr[3]);
   }     
 }
 
@@ -310,7 +308,6 @@ void loop() {
     else if (joy.isPush != SWLastState) {
       SWLastState = true;
       isLEDOn = !isLEDOn;
-      Serial.print("pressed");
     }
       
     int r, g, b;
@@ -318,11 +315,6 @@ void loop() {
       getRGBValues(joy, &r, &g, &b);
     toggleLED(isLEDOn, r, g, b);
   
-    // Serial.print("Joystick value : ");
-    // Serial.print(joy.xAxis);
-    // Serial.print(" ");
-    // Serial.println(joy.yAxis);
-
     check_mode();
     
     delay(10);
