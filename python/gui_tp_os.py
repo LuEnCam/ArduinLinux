@@ -1,5 +1,6 @@
 import sys
-from PyQt6.QtCore import Qt
+from tkinter import W
+from PyQt6.QtCore import Qt, QThreadPool
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QSlider, QLabel, QTextEdit, QTextEdit, QLineEdit, QMessageBox, QVBoxLayout, QGridLayout
 from screeninfo import get_monitors
 from functools import partial
@@ -25,6 +26,12 @@ def compute_app_size(width, height):
 
 def get_center_app_position(monitor_width, monitor_height, app_width, app_height):
     return int(monitor_width/2 - app_width/2), int(monitor_height/2 - app_height/2)
+
+def __del__(self):
+    if self.ser is not None:
+        self.ser.close()
+    print(QThreadPool.globalInstance().activeThreadCount())
+    QThreadPool.globalInstance().waitForDone()
 
 
 class MainWindow(QWidget):
@@ -58,6 +65,8 @@ class MainWindow(QWidget):
             self.list_of_ports.append(comport.device)
                 
         self.serial = None
+        self.joystickSignals = script.ReadInputSignals()
+        self.joystickSignals.result.connect(self.joystickEventThing)
         
         self.create_ui(**kwargs)
         
@@ -78,7 +87,8 @@ class MainWindow(QWidget):
         self.sat = 0
         self.on_off = 0
         self.mode_GUI = False ## for UI mode, else False for joystick mode
-            
+        self.joystick_thread = None
+
         # create the joystick input text zone
         self.textJoystick = QTextEdit()
         self.textJoystick.setReadOnly(True)
@@ -96,7 +106,7 @@ class MainWindow(QWidget):
         
         # create LED sliders
         initialHueValue = 0
-        self.hueWheel = 360
+        self.hueWheel = 359
         self.basicSliderHueText = 'HUE: '
         self.labelValueHue = QLabel(self.basicSliderHueText + '%.2f' % initialHueValue)
         self.labelValueHue.setStyleSheet('font-size: 12px;')
@@ -191,9 +201,14 @@ class MainWindow(QWidget):
             self.arduinoPort.clear()
             self.connectPushButton.setDisabled(True)
             self.switch_button.setEnabled(True)
+
+            self.create_and_run_joystick_worker()
+
             QMessageBox.information(self, 'Connection', f'Connection established to port {value}')
-        except:
+        except Exception as e:
             QMessageBox.warning(self, 'Error', f'Port n° "{value}" not found')
+            print(e)
+
 
     ## Switches the LED on/off    
     def toggleLed(self, sender, checked):
@@ -209,7 +224,13 @@ class MainWindow(QWidget):
         if oldText != '':
             s += '\n'
         self.textJoystick.setText(s + oldText)
-        
+
+        self.create_and_run_joystick_worker()
+
+    def create_and_run_joystick_worker(self):
+        worker = script.ReadInput(self.serial, self.joystickSignals)
+        QThreadPool.globalInstance().start(worker)
+
     ## Switches the mode between joystick and keyboard
     def switch_mode(self):
         self.mode_GUI = not self.mode_GUI
