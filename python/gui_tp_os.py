@@ -107,9 +107,9 @@ class MainWindow(QWidget):
         # intensity
         initialIntensityValue = 0
         self.hueIntensity = 100
-        self.basicSliderIntensityText = 'Intensity: '
-        self.labelValueIntensity = QLabel(self.basicSliderIntensityText + '%.2f' % initialIntensityValue)
-        self.labelValueIntensity.setStyleSheet('font-size: 12px;')
+        self.basicSliderIntensityText = 'Saturation: '
+        self.labelValueSaturation = QLabel(self.basicSliderIntensityText + '%.2f' % initialIntensityValue)
+        self.labelValueSaturation.setStyleSheet('font-size: 12px;')
         self.sliderIntensity = QSlider(Qt.Orientation.Horizontal)
         self.sliderIntensity.setMinimum(0)
         self.sliderIntensity.setMaximum(self.hueIntensity)
@@ -146,7 +146,7 @@ class MainWindow(QWidget):
         layoutSliders = QGridLayout()
         layoutSliders.addWidget(self.labelValueHue, 0, 0)
         layoutSliders.addWidget(self.sliderHue, 0, 1)
-        layoutSliders.addWidget(self.labelValueIntensity, 1, 0)
+        layoutSliders.addWidget(self.labelValueSaturation, 1, 0)
         layoutSliders.addWidget(self.sliderIntensity, 1, 1)
         layoutSliders.addWidget(portTitle, 2, 0)
         layoutSliders.addWidget(self.arduinoPort, 2, 1)
@@ -171,7 +171,7 @@ class MainWindow(QWidget):
     ## Changes the intensity of the LED
     def hueChangeIntensity(self):
         value = self.sender().value() / self.hueIntensity
-        self.labelValueIntensity.setText(self.basicSliderIntensityText + '%.2f' % value)
+        self.labelValueSaturation.setText(self.basicSliderIntensityText + '%.2f' % value)
         self.sat = value
         mode = get_mode_value(self.mode_GUI)
         script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat} {mode} \n")
@@ -195,7 +195,6 @@ class MainWindow(QWidget):
     def toggleLed(self, sender, checked):
         mode = 'ON' if checked else 'OFF'
         sender.setText(self.basicToggleLedText + mode)
-        project_events.ledEvent(checked)
         self.on_off = 1 if checked else 0
         mode = get_mode_value(self.mode_GUI)
         script.send_input(self.serial, f"{self.on_off} {self.hue} {self.sat} {mode} \n")

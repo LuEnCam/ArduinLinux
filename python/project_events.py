@@ -13,7 +13,7 @@ class Event():
         for evenhandler in self.__eventhandlerjoystick:
             evenhandler(*args, **kwargs)
 
-ledEvent = Event()
+
 joystickEvent = Event()
 
 # def ledcalled(checked):
