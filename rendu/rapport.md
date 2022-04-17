@@ -86,7 +86,7 @@ Exemple:
 _input = "1 120 1.0 2" ## ceci envoie l'information que la led est allumée, sur l'angle de couleur 120, avec une intensité de 1.0 et en mode UI
 ```
 
-Avant de pouvoir controller l'arduino avec le GUI, il est nécessaire de faire l'interfaçage entre le script python et l'arduino. Dans le GUI, un champ est mis à disposition pour spécifier le port sur lequel est connecté l'arduino (que ce soit sur windows ou Linux). La librairie python **serial.tools** permet d'identifier les ports dispobiles où se trouvent les périphériques branchés à la machine:
+Avant de pouvoir controller l'arduino avec le GUI, il est nécessaire de faire l'interfaçage entre le script python et l'arduino. Dans le GUI, un champ est mis à disposition pour spécifier le port sur lequel est connecté l'arduino (que ce soit sur windows ou Linux). La librairie python **serial.tools** permet d'identifier les ports disponibles où se trouvent les périphériques branchés à la machine:
 
 ![](../images/Capture5.png)
 
