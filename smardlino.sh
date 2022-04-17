@@ -8,4 +8,4 @@ echo "Activated!"
 
 echo "Starting the application..."
 cd python/
-pythonw3 ./gui_tp_os.py
+python3 ./gui_tp_os.py

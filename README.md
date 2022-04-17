@@ -16,13 +16,13 @@ run the smardlino script corresponding to your os
 
 ## Setup arduino
 
-connecter la led rgb sur les pins:
+connect the LED on the following pins :
 
 - 3 Digital (R)
 - 5 Digital (G)
 - 6 Digital (B)
 
-connecter le joystick sur les pins:
+connect the Joystick on the following pins :
 
 - 7 Digital (SW)
 - 4 Analog (X)
@@ -32,11 +32,11 @@ connecter le joystick sur les pins:
 
 ### python
 
-be sure to have python 3 installed with the path specified in your PATH environnement var
+be sure to have **python 3** installed with the path specified in your PATH environnement var
 
-be sure to have pip installed with the path specified in your PATH environnement var
+be sure to have **pip** installed with the path specified in your PATH environnement var
 
-works on python 3.9.1 and above for sure
+works on **python 3.9.1** and above for sure
 
 didn't try of earlier versions
 

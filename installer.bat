@@ -29,7 +29,7 @@ echo Compiling the sketch...
 
 echo.
 echo Uploading the sketch...
-set /p com=Which port ? (only the number):\ntips: you can see it by right-clicking on windows logo -> Device Manager -> Ports -> COM
+set /p com="Which port ? (only the number):\ntips: you can see it by right-clicking on windows logo -> Device Manager -> Ports -> COM "
 echo arduino is on port COM%com%
 ./arduino-cli.exe upload -p COM%com% --fqbn arduino:avr:uno ../sketch_project/sketch_project.ino
 

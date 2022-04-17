@@ -33,7 +33,7 @@ Comment changer la couleur de la led depuis un joystick?
 Le joystick est vu comme un cercle:
 
 - prendre l'angle comme valeur hue.
-- prendre la "distance du joystick par rapprot à son centre" comme valeur saturation.
+- prendre la "distance du joystick par rapprot à son centre" comme valeur de saturation.
 
 Puis convertir la valeur HSV en RGB.
 
@@ -67,4 +67,40 @@ Il existe aussi PySide2, qui est une version open source de PyQt, mais il a ét�
 
 ## 4. Desktop - Connection Serial
 
-TODO: LUCA
+Depuis le script python, des énénements sont déclenchés afin de communiquer avec l'arduino (appui d'un bouton, changement des valeurs des barres glissantes pour controller la saturation et la couleur, allumer ou éteindre la LED).
+Tous les événements sont connectés à la même fonction :
+```python
+	def send_input(ser: serial, _input: str): 
+```
+**serial** correspond à l'objet établissant la communication avec l'arduino tandis que **_input** correspond à la commande envoyée à l'arduino. La commande envoyée est toujours de la forme suivante:
+ ```python
+	## _input = on_off hue intensity mode 
+```
+**on_off** correspond à un entier (1 pour allumé, 0 pour éteindre)
+**hue** correspond à la valeur en entier de la couleur sur le cercle HUE (entre 0 et 359)
+**intensity** correspond à la valeur en float de l'intensité de la couleur (0.0 pour blanc et 1.0 pour la couleur vive)
+**mode** correspond au mode de contrôle de la LED en entier (1 pour le mode "joystick" et 2 pour le mode "UI")
+
+Exemple: 
+```python
+_input = "1 120 1.0 2" ## ceci envoie l'information que la led est allumée, sur l'angle de couleur 120, avec une intensité de 1.0 et en mode UI
+```
+
+Avant de pouvoir controller l'arduino avec le GUI, il est nécessaire de faire l'interfaçage entre le script python et l'arduino. Dans le GUI, un champ est mis à disposition pour spécifier le port sur lequel est connecté l'arduino (que ce soit sur windows ou Linux). La librairie python **serial.tools** permet d'identifier les ports dispobiles où se trouvent les périphériques branchés à la machine:
+
+![](../images/Capture5.png)
+
+Exemple sur Windows : 
+
+![](../images/Capture6.png)
+
+Exemple sur Linux : 
+
+![](../images/Capture7.png)
+
+Lorsque le mode joystick est activé, seul le changement de mode côté GUI est disponible (il n'est pas possible de modifier les valeurs de la LED sur l'UI pendant le mode Joystick).
+
+## 5. Lecture des valeurs du joysitck
+
+TODO Jarod
+
