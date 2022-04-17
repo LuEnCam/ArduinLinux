@@ -184,8 +184,14 @@ void getRGBValues(joystick joy, int* r, int* g, int* b) {
   // xAxis and yAxis between 0 and 1023
   // r, g, b between 0 and 255
   num_type h, s, v;
-  if (global_mode == 1)
+  if (global_mode == 1) {
     getHSV(joy.xAxis, joy.yAxis, &h, &s, &v);
+    Serial.print(joy.xAxis);
+    Serial.print(" ");
+    Serial.print(joy.yAxis);
+    Serial.print(" ");
+    Serial.println(joy.isPush);
+  }
   else{
     h = gl_h;
     s = gl_s;
