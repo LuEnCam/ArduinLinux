@@ -7,7 +7,7 @@ def send_input(ser: serial, _input: str):
     if ser is not None:
         ser.write(str.encode(_input)) # Convert the decimal number to ASCII then send it to the Arduino
         ##print(ser.readline()) # Read the newest output from the Arduino (not used anymore)
-        print(_input)
+        ## print(_input)
         ## sleep(0.2)
         
 
